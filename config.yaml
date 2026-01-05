@@ -1,0 +1,18 @@
+name: EMHASS Runtime Only
+version: "1.0.2"
+slug: emhass_runtime_only
+description: "EMHASS server without Home Assistant fetching (runtime-only)."
+arch:
+  - aarch64
+  - armv7
+  - armhf
+startup: services
+boot: auto
+init: false
+ingress: false
+ports:
+  "5000/tcp": 5000
+map:
+  - share:rw
+options: {}
+schema: {}
