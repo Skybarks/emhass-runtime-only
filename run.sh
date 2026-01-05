@@ -2,14 +2,17 @@
 set -e
 
 python - <<'PY'
-from emhass.web_server import WebServer
+from emhass.web_server import create_app
+import uvicorn
 
-srv = WebServer(
+app = create_app(
     data_path="/share",
     log_level="INFO",
     use_websocket=False,
     hass_url="empty",
     hass_token="empty",
 )
-srv.run(host="0.0.0.0", port=5000)
+
+uvicorn.run(app, host="0.0.0.0", port=5000)
 PY
+
