@@ -3,9 +3,8 @@ set -e
 
 # -------------------------------------------------------------------
 # EMHASS runtime-only start script for HAOS add-on
-# Goal:
-# - NEVER call Home Assistant / Supervisor API (avoid 401 + instability)
-# - Use ONLY local config (persisted in /share/config.json)
+# - Prevent Supervisor/HA autodetect (no calls to supervisor/core/api)
+# - Use ONLY a runtime-only local config file in /share
 # - Serve EMHASS FastAPI app on :5000
 # -------------------------------------------------------------------
 
@@ -15,7 +14,7 @@ unset HASSIO_TOKEN || true
 export SUPERVISOR_TOKEN=""
 export HASSIO_TOKEN=""
 
-# 2) Provide minimal add-on options file (some EMHASS code paths read this)
+# 2) Minimal add-on options (some code paths look at this)
 mkdir -p /data
 cat > /data/options.json <<'JSON'
 {
@@ -24,14 +23,14 @@ cat > /data/options.json <<'JSON'
 }
 JSON
 
-# 3) Ensure a local config exists and is reachable where EMHASS looks for it
-# We persist the real config in /share (so you can edit it from HA File Editor),
-# and symlink it into /data (because EMHASS often defaults to /data).
-if [ ! -f /share/config.json ]; then
-  cat > /share/config.json <<'JSON'
+# 3) Ensure runtime-only config exists in /share (DO NOT touch /share/config.json)
+RUNTIME_CFG="/share/config_runtime_only.json"
+
+if [ ! -f "${RUNTIME_CFG}" ]; then
+  cat > "${RUNTIME_CFG}" <<'JSON'
 {
   "data_path": "/share",
-  "log_level": "INFO",
+  "logging_level": "INFO",
 
   "inverter_is_hybrid": true,
   "inverter_ac_output_max": 10000,
@@ -54,9 +53,10 @@ if [ ! -f /share/config.json ]; then
 JSON
 fi
 
-ln -sf /share/config.json /data/config.json
+# EMHASS tends to look for /data/config.json -> point it to our runtime-only config
+ln -sf "${RUNTIME_CFG}" /data/config.json
 
-# 4) Start EMHASS web server (FastAPI) via uvicorn
+# 4) Start EMHASS FastAPI app
 exec uvicorn emhass.web_server:app \
   --host 0.0.0.0 \
   --port 5000 \
