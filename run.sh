@@ -1,13 +1,34 @@
 #!/usr/bin/env bash
 set -e
 
-# Hard runtime-only: prevent EMHASS from using Supervisor API autodetect
-unset SUPERVISOR_TOKEN
-unset HASSIO_TOKEN
+# -------------------------------------------------------------------
+# EMHASS runtime-only start script for HAOS add-on
+# Goal:
+# - NEVER call Home Assistant / Supervisor API (avoid 401 + instability)
+# - Use ONLY local config (persisted in /share/config.json)
+# - Serve EMHASS FastAPI app on :5000
+# -------------------------------------------------------------------
+
+# 1) Disable Supervisor autodetect inside EMHASS
+unset SUPERVISOR_TOKEN || true
+unset HASSIO_TOKEN || true
 export SUPERVISOR_TOKEN=""
 export HASSIO_TOKEN=""
 
-cat > /share/config.json <<'JSON'
+# 2) Provide minimal add-on options file (some EMHASS code paths read this)
+mkdir -p /data
+cat > /data/options.json <<'JSON'
+{
+  "url": "empty",
+  "key": "empty"
+}
+JSON
+
+# 3) Ensure a local config exists and is reachable where EMHASS looks for it
+# We persist the real config in /share (so you can edit it from HA File Editor),
+# and symlink it into /data (because EMHASS often defaults to /data).
+if [ ! -f /share/config.json ]; then
+  cat > /share/config.json <<'JSON'
 {
   "data_path": "/share",
   "log_level": "INFO",
@@ -31,9 +52,11 @@ cat > /share/config.json <<'JSON'
   "compute_curtailment": false
 }
 JSON
+fi
 
+ln -sf /share/config.json /data/config.json
 
-
+# 4) Start EMHASS web server (FastAPI) via uvicorn
 exec uvicorn emhass.web_server:app \
   --host 0.0.0.0 \
   --port 5000 \
