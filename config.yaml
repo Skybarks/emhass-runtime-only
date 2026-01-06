@@ -14,6 +14,8 @@ ports:
   "5000/tcp": 5000
 map:
   - share:rw
+  - data:rw
+
 
 options:
   data_path: /share
