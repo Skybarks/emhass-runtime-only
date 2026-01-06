@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 set -e
 
-# Force runtime-only: prevent EMHASS from calling supervisor/core/api (401)
-# EMHASS addon-mode reads /data/options.json for url/key.
+# Hard runtime-only: prevent EMHASS from using Supervisor API autodetect
+unset SUPERVISOR_TOKEN
+unset HASSIO_TOKEN
+export SUPERVISOR_TOKEN=""
+export HASSIO_TOKEN=""
+
+# Provide addon-style options for modules that read it
 mkdir -p /data
 cat > /data/options.json <<'JSON'
 {
