@@ -7,14 +7,16 @@ unset HASSIO_TOKEN
 export SUPERVISOR_TOKEN=""
 export HASSIO_TOKEN=""
 
-# Provide addon-style options for modules that read it
-mkdir -p /data
-cat > /data/options.json <<'JSON'
+cat > /data/config.json <<'JSON'
 {
-  "url": "empty",
-  "key": "empty"
+  "data_path": "/share",
+  "log_level": "INFO",
+  "retrieve_hass_conf": {
+    "method": "skip"
+  }
 }
 JSON
+
 
 exec uvicorn emhass.web_server:app \
   --host 0.0.0.0 \
