@@ -1,17 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
-# ------------------------------------------------------------
-# EMHASS Runtime Only (stable) - start EMHASS the "normal" way
-# so naive-mpc-optim can access HA via Supervisor API.
-#
-# Prereq in add-on config.yaml:
-#   hassio_api: true
-#   homeassistant_api: true
-#   auth_api: true
-#
-# This is the simplest, least-fragile run.sh.
-# ------------------------------------------------------------
+# Force EMHASS to use Supervisor Core API (verified working)
+export EMHASS_URL="http://supervisor/core/api"
+export EMHASS_KEY="${SUPERVISOR_TOKEN}"
+export EMHASS_USE_WEBSOCKET="false"
 
 exec uvicorn emhass.web_server:app \
   --host 0.0.0.0 \
