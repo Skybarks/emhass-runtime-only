@@ -30,3 +30,8 @@ schema:
   hass_url: str
   hass_token: str
   use_websocket: bool
+
+hassio_api: true
+homeassistant_api: true
+auth_api: true
+
