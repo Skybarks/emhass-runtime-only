@@ -1,11 +1,5 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-# Runtime-only: erzwinge lokale config, kein Supervisor/HA fetch
-mkdir -p /data
-cat >/data/options.json <<'JSON'
-{"url":"empty","key":"empty"}
-JSON
+#!/bin/sh
+set -eu
 
 exec uvicorn emhass.web_server:app \
   --host 0.0.0.0 \
